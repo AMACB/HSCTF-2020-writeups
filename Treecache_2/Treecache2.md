@@ -110,3 +110,5 @@ Currently, the top of the tcache freelist points to the corrupted chunk. If we `
 
 ### Cleaning Up
 At this point, the remainder of the exploit is routine. It will be helpful to have a chunk in the heap with the string `/bin/sh` in it; simply edit a donation and enter all the strings as `/bin/sh`. Now use the leaked libc address to compute the addresses of `__free_hook` and `system`. Use the arbitrary write described above to write `system` into `__free_hook`. Finally, free the donation with the `/bin/sh`; this would normally call `free` with that pointer, but `__free_hook` overwrote `free` so that we are now calling `system('/bin/sh')`. With the shell, we profit.
+
+The full exploit with poor comments, can be found [here](/Treecache_2/tree2force.py). The original `.c` file in the challenge can be found [here](/trees2.c).
