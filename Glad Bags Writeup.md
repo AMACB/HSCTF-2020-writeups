@@ -24,9 +24,9 @@ Open at your own risk! This picture was taken just before Notepad++ crashed. Sam
 3. 7-zip (full circle in a way): actually, this is the 7-zip Extra version, and unlike the past ones, is not source.
 
 7-zip is the final destination in nested archives, tested through binwalking through the larger files. The file of interest is aarch64/7za.exe for a number of red flags:
-4. x64 and aarch64 usually mean the same thing, and shouldn't be present together.
-5. Looking into them, aarch64 has a 7za.exe and a 7za.exe.bak. Highly unusual for released software to keep backup files like that in the bin directory. And 7za.exe is 10 bytes larger
-6. Probably the biggest giveaway, all the other files in those two folders were last modified in 2019, while this one was May 28, a few days before the ctf... and it sticks out like a sore thumb in 7zip
+1. x64 and aarch64 usually mean the same thing, and shouldn't be present together.
+2. Looking into them, aarch64 has a 7za.exe and a 7za.exe.bak. Highly unusual for released software to keep backup files like that in the bin directory. And 7za.exe is 10 bytes larger
+3. Probably the biggest giveaway, all the other files in those two folders were last modified in 2019, while this one was May 28, a few days before the ctf... and it sticks out like a sore thumb in 7zip
 ![](https://cdn.discordapp.com/attachments/717493157440258048/718657504845889576/unknown.png)
 Diffing the FOI and the backup shows an interesting string: `MZWGCZ33MRXW45C7M5SXIX3NMFSF6Z3FORPWO3DBMRPWK6T5`
 I have no idea what encoding that is, but maybe CyberChef does...
