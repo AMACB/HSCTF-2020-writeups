@@ -1,4 +1,5 @@
-#Traffic Lights A Writeup
+# Traffic Lights A Writeup
+
 This challenge can be quickly identified as a textbook min cost flow problem.
 Googling "min cost flow code" we find a handy implementation of this algorithm.
   [Their code](https://developers.google.com/optimization/flow/mincostflow)
