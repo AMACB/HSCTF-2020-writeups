@@ -28,8 +28,7 @@ Open at your own risk! This picture was taken just before Notepad++ crashed. Sam
 2. Looking into them, aarch64 has a 7za.exe and a 7za.exe.bak. Highly unusual for released software to keep backup files like that in the bin directory. And 7za.exe is 10 bytes larger
 3. Probably the biggest giveaway, all the other files in those two folders were last modified in 2019, while this one was May 28, a few days before the ctf... and it sticks out like a sore thumb in 7zip
 ![](https://cdn.discordapp.com/attachments/717493157440258048/718657504845889576/unknown.png)
-Diffing the FOI and the backup shows an interesting string: `MZWGCZ33MRXW45C7M5SXIX3NMFSF6Z3FORPWO3DBMRPWK6T5`
-I have no idea what encoding that is, but maybe CyberChef does...
+Diffing the FOI and the backup shows an interesting string: `MZWGCZ33MRXW45C7M5SXIX3NMFSF6Z3FORPWO3DBMRPWK6T5` I have no idea what encoding that is, but maybe CyberChef does...
 ![](https://cdn.discordapp.com/attachments/717493157440258048/718665238634823720/unknown.png)
 Flag: `flag{dont_get_mad_get_glad_ez}`
 Also, if you take out the modified 7z.exe and rename the backup, hashing the x64 and aarch64 folders reveals that they are identical...not sure why both were in there.
