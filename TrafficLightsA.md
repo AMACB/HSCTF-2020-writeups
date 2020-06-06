@@ -13,6 +13,9 @@ From here, the only challenge left is to successfully pipe the output. But that'
 Notepad++ file, cut the garbage, copied the input over to an input file for python, ran the code using pycharm, and pasted the output back
 into the terminal. Only took two tries to get this under 120 seconds.
 
+Flag:
+```flag{n0_u_c4n7_ju57_u53_n37w0rk_51mpl3x_h4h4_c4r_60_vr00m_69bb3a80}```
+
 Code below
 ```python
 from __future__ import print_function
