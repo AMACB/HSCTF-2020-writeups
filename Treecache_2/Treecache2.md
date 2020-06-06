@@ -9,13 +9,13 @@
 ## Solution
 
 ### Outline
-1. The vulnerability is that setting description length equal to `0` gives a heap overflow.
-2. Leak the libc address by freeing a chunk onto the smallbin freelist and then using `malloc` first-fit to put the address of the leak in the `name` or `amount` parameter of a donation.
-3. Use the heap overflow to poison the forward pointer of a chunk on the tcache freelist to get arbitrary write.
-4. Write `system` to `__free_hook` and then `free` a chunk containing the string `/bin/sh` to get a shell.
+1. The vulnerability is that setting the description length equal to `0` gives a heap overflow.
+2. We leaked the libc address by freeing a chunk onto the smallbin freelist and then using `malloc` first-fit to put the address of the leak in the `name` or `amount` parameter of a donation.
+3. We used the heap overflow to poison the forward pointer of a chunk on the tcache freelist to get arbitrary write.
+4. We wrote `system` to `__free_hook` and then `free`d a chunk containing the string `/bin/sh` to get a shell.
 
 ### Vulnerability
-We present a solution orthogonal to Treecache 1; of course, the exact same exploit and script will work on both. As always, we begin with a `checksec`.
+We present a solution orthogonal to Treecache 1; of course, the exploit and script presented here will work on both. As always, we begin with a `checksec`.
 ```
 $ checksec trees2
 [*] '/trees2'
@@ -95,7 +95,7 @@ Recall that we when we ask for `0` bytes in the description, the program lets us
 0000000000000000      0000000000000000
 ...
 ```
-Now, free the bottom chunk onto the tcache freelist. This will make tcache store the pointer to the next chunk inside of the freed chunk.
+Now, we free the bottom chunk onto the tcache freelist. This will make tcache store the pointer to the next chunk inside of the freed chunk.
 ```
 0000000000000000      0000000000000021
 0000000000000000      0000000000000000
@@ -111,9 +111,9 @@ deadbeefdeadbeef      deadbeefdeadbeef <-- size of chunk also corrupted
 00007f00deadbeef      0000000000000000 <-- tcache's pointer has been corrupted
 ...
 ```
-Because we just freed the large chunk onto the tcache freelist, the top of the tcache freelist currenlt points to the corrupted chunk. If we `malloc` for a chunk of size `0x100`, `malloc` will hand us back the corrupted chunk and then write the corrupted pointer `0x00007f00deadbeef` onto the tcache freelist. Then the next time we ask for a chunk of size `0x100`, the top of the tcache freelist will read `0x00007f00deadbeef`, so `malloc` will let us write at `0x00007f00deadbeef`. This gives us arbitrary write from tcache poison.
+Because we just freed the large chunk onto the tcache freelist, the top of the tcache freelist currently points to the corrupted chunk. If we `malloc` for a chunk of size `0x100`, `malloc` will hand us back the corrupted chunk and then write the corrupted pointer `0x00007f00deadbeef` onto the tcache freelist. Then the next time we ask for a chunk of size `0x100`, the top of the tcache freelist will read `0x00007f00deadbeef`, so `malloc` will let us write at `0x00007f00deadbeef`. This gives us arbitrary write from tcache poison.
 
 ### Finishing Up
-At this point, the remainder of the exploit is routine. It will be helpful to have a chunk in the heap with the string `/bin/sh` in it; simply edit a donation and enter all the strings as `/bin/sh`. Now use the leaked libc address to compute the addresses of `__free_hook` and `system`. Use the arbitrary write described above to write `system` into `__free_hook`. Finally, free the donation with the `/bin/sh`; this would normally call `free` with that pointer, but `__free_hook` overwrote `free` so that we are now calling `system('/bin/sh')`. This gives us a shell, from which we can easily get the flag.
+At this point, the remainder of the exploit is routine. It will be helpful to have a chunk in the heap with the string `/bin/sh` in it; we simply edited a donation and entered all the strings as `/bin/sh`. Now we can use the leaked libc address to compute the addresses of `__free_hook` and `system`. Then the arbitrary write described above let us write `system` into `__free_hook`. Finally, when we free the donation with the `/bin/sh`, this would normally call `free` with that pointer, but `__free_hook` overwrote `free` so that we are now calling `system('/bin/sh')`. This gives us a shell, from which we can easily get the flag.
 
-The full exploit, with poor comments, can be found [here](/Treecache_2/tree2force.py). The original `.c` file in the challenge can be found [here](/trees2.c).
+The full exploit, with poor comments, can be found [here](/Treecache_2/tree2force.py). The original `.c` file in the challenge can be found [here](/Treecache_2/trees2.c).
