@@ -20,15 +20,19 @@ The challenge continues in the nested format:
 1. afl contains pwntools (github dev branch). Setup.py is way too large. If you tried opening it and scrolling down, you'd be greeted with this...
 ![](https://cdn.discordapp.com/attachments/717493157440258048/717839149868122142/unknown.png)
 Open at your own risk! This picture was taken just before Notepad++ crashed. Same fate with standard notepad and even vim. Poortho also said he had issues during this step in his test solve... This is hex, which you can manually convert back into characters to get the binary file, or just use this tool after deleting all the python surrounding it (don't forget the parantheses at the end of the file...good luck with that!): <http://tomeko.net/bin/hex_to_file/hex_to_file.exe>. With that, we get the next 7z.
-2. Audacity: This one would have had to compare to original source since the sizes don't suspects to one as well as the previous ones, but a cursory peek through the files showed a suspiciously-named suspicious.ny in the plugin folder, with a suspiciously large size compared to the others. Opening the file appears to first be standard text, but the facade completely falls down at line 58, beginning with PK, the magic header for zip files, giving us:
+2. Audacity: This one would have had to compare to original source since the sizes don't suspects to one as well as the previous ones, but a cursory peek through the files showed a suspiciously-named suspicious.ny in the plugin folder, with a suspiciously large size compared to the others. Opening the file appears to first be standard text, but disappears at line 58, beginning with PK, the magic header for zip files, giving us:
 3. 7-zip (full circle in a way): actually, this is the 7-zip Extra version, and unlike the past ones, is not source.
 
 7-zip is the final destination in nested archives, tested through binwalking through the larger files. The file of interest is aarch64/7za.exe for a number of red flags:
 1. x64 and aarch64 usually mean the same thing, and shouldn't be present together.
-2. Looking into them, aarch64 has a 7za.exe and a 7za.exe.bak. Highly unusual for released software to keep backup files like that in the bin directory. And 7za.exe is 10 bytes larger
-3. Probably the biggest giveaway, all the other files in those two folders were last modified in 2019, while this one was May 28, a few days before the ctf... and it sticks out like a sore thumb in 7zip
+2. Looking into them, aarch64 has a 7za.exe and a 7za.exe.bak. Highly unusual for released software to keep backup files like that in the bin directory. And 7za.exe is 10 bytes larger.
+3. Probably the biggest giveaway, all the other files in those two folders were last modified in 2019, while this one was May 28, a few days before the ctf, and it sticks out like a sore thumb in 7zip.
+
 ![](https://cdn.discordapp.com/attachments/717493157440258048/718657504845889576/unknown.png)
+
 Diffing the FOI and the backup shows an interesting string: `MZWGCZ33MRXW45C7M5SXIX3NMFSF6Z3FORPWO3DBMRPWK6T5` I have no idea what encoding that is, but maybe CyberChef does...
+
 ![](https://cdn.discordapp.com/attachments/717493157440258048/718665238634823720/unknown.png)
+
 Flag: `flag{dont_get_mad_get_glad_ez}`
 Also, if you take out the modified 7z.exe and rename the backup, hashing the x64 and aarch64 folders reveals that they are identical...not sure why both were in there.
