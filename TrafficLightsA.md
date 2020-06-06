@@ -4,14 +4,12 @@ This challenge can be quickly identified as a textbook min cost flow problem.
 Googling "min cost flow code" we find a handy implementation of this algorithm.
   [Their code](https://developers.google.com/optimization/flow/mincostflow)
 
-Shamelessly being a script kiddie and copying their code we only have to change how we read in input, which is rather trivial.
+Shamelessly being a script kiddie and copying their code, we only have to change how we read in input to solve the problem.
 
 Sidenote: This problem was solved while there was still the issue of there being a greater total workplace capacity than total workers. 
 Therefore, we had to call min_cost_flow.SolveMaxFlowWithMinCost() instead of just Solve(), as seen in Google's documentation.
 
-From here, the only challenge left is to successfully pipe the output. But that's for noobs. Instead, I appended the problem input into a
-Notepad++ file, cut the garbage, copied the input over to an input file for python, ran the code using pycharm, and pasted the output back
-into the terminal. Only took two tries to get this under 120 seconds.
+From here, the only challenge left is to successfully pipe the output. But that's for noobs. Instead, I appended the problem input into a Notepad++ file, cut the garbage, copied the input over to an input file for python, ran the code using pycharm, and pasted the output back into the terminal. Only took two tries to get this under 120 seconds.
 
 Flag:
 ```flag{n0_u_c4n7_ju57_u53_n37w0rk_51mpl3x_h4h4_c4r_60_vr00m_69bb3a80}```
