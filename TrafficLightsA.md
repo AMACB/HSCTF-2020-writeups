@@ -1,17 +1,19 @@
+#Traffic Lights A Writeup
 This challenge can be quickly identified as a textbook min cost flow problem.
 Googling "min cost flow code" we find a handy implementation of this algorithm.
-  https://developers.google.com/optimization/flow/mincostflow
+  [Their code](https://developers.google.com/optimization/flow/mincostflow)
+
 Shamelessly being a script kiddie and copying their code we only have to change how we read in input, which is rather trivial.
+
 Sidenote: This problem was solved while there was still the issue of there being a greater total workplace capacity than total workers. 
   Therefore, we had to call min_cost_flow.SolveMaxFlowWithMinCost() instead of just Solve(), which accounts for this.
+
 From here, the only challenge left is to successfully pipe the output. But that's for noobs. Instead I appended the problem input into a
   Notepad++ file, cut the garbage, copied the input over to an input file for python, ran the code using pycharm, and pasted the output back
   into the terminal. Only took two tries to get this under 120 seconds.
 
 Code below
-
-# """From Bradley, Hax, and Magnanti, 'Applied Mathematical Programming', figure 8.1."""
-
+```python
 from __future__ import print_function
 from ortools.graph import pywrapgraph
 import numpy as np
@@ -91,3 +93,4 @@ def main():
 
 if __name__ == '__main__':
 	main()
+```
