@@ -60,9 +60,9 @@ The heap leak is somewhat clever. The program is quite conservative in what it p
 Notice that because we can write `malloc`'s pointer anywhere in memory, we can write `malloc`'s poitner into `allocated_count`; recall PIE means the location of `allocated_count` is also fixed. Then reading out the value of `allocated_count` from the `do_worksheet` method will leak this heap pointer.
 
 ### Exploiting the Vulnerability
-The key frustration in this challenge is that `free` is never called, which means that no proper use-after-free bug can exist. So to get around this, we simulate a `free` by just telling `malloc` that there's a freed chunk it should give us. And of course, because we're using libc 2.29, we're going to use gloriously vulnerable tcache. So let's try to poison that freelist.
+The key frustration in this challenge is that `free` is never called, which means that no proper use-after-free bug can exist. So to get around this, we simulate a `free` by just telling `malloc` that there's a freed chunk it should give us. And of course, because we're using libc 2.29, we're going to use the gloriously vulnerable tcache. So let's try to poison that freelist.
 
-In order for tcache to give us a pointer, that pointer will need to be on its freelist. Usually, this means that we have to free a chunk onto the freelist, but as stated above, there is no `free` call. But recall that we can write a heap address anywhere we can get our hands on, and thanks to the heap leak, this includes the tcache freelist.
+In order for tcache to give us a pointer, that pointer will need to be on its freelist. Usually, this means that we have to free a chunk onto the freelist, but as stated above, there is no `free` call. However, the vulnerability allows us to write a heap address anywhere we can get our hands on, and thanks to the heap leak, this includes the tcache freelist.
 
 So we begin by setting `allocated_amount` so that `stack[allocated_amount]` will be on the tcache freelist. Then, when we `malloc` a chunk, two things happen. First, the call
 ```c
@@ -76,15 +76,15 @@ tcache freelists : 00007fff31415900      0000000000000000 <-- pointer to heap ch
 00007fff31415900 : 00007f00deadbeef      0000000000000000 <-- our heap chunk
                    ...
 ```
-As far as tcache is concerned, this looks like a perfectly linked list. The next time we `malloc` a chunk of size `0x100`, `malloc` will check tcache and find that `0x7fff31415900` is freed and ready to be returned. Then it looks inside of the chunk for the pointer to the next freed chunk and finds `0x7f00deadbeef` waiting for it. It writes this into tcache so that the heap looks roughly like the following.
+As far as tcache is concerned, this looks like a perfectly valid linked list. The next time we `malloc` a chunk of size `0x100`, `malloc` will check tcache and find that `0x7fff31415900` is freed and ready to be returned. Then it looks inside of the chunk for the pointer to the next freed chunk and finds `0x7f00deadbeef` waiting for it. It writes this into tcache so that the heap looks roughly like the following.
 ```
 tcache freelists : 00007f00deadbeef      0000000000000000 <-- our pointer on tcache
                    ...
 00007fff31415800 : 0000000000000000      0000000000000101
-00007fff31415900 : 00007f00deadbeef      0000000000000000 <-- returned to program
+00007fff31415900 : 00007f00deadbeef      0000000000000000 <-- chunk returned to program
                    ...
 ```
-Now, when we `malloc` one more time for a chunk of size `0x100`, `malloc` will once again check the tcache freelist and find our pointer `0x7f00deadbeef` waiting for it. Now we get to write to `0x7f00deadbeef`, which is the arbitrary write we need to finish.
+Now, when we `malloc` one more time for a chunk of size `0x100`, `malloc` will once again check the tcache freelist and find our pointer `0x7f00deadbeef` waiting for it. Now we get to write to `0x7f00deadbeef`, which gives us arbitrary write.
 
 ### Leaking Libc
 The libc leak we generated is quite interesting. A motivating idea is to again use the fact PIE is disabled to read directly from the GOT. After all, even full RELRO has to allow the program to read the GOT, and we not asking to overwrite anything. However, the only way to read from an address is in the `new_worksheet` method, here.
