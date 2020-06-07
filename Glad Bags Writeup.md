@@ -2,6 +2,8 @@
 
 >Poortho made some hard pwn for y'all. It's so hard, you don't get any input.
 
+(Preface: This problem was not hard like other problems where you need a large amount of sufficient knowledge (heap pwn), but very lengthly and drawn out, like the Harry Potter series.)
+
 Well, on the bright side, this is forensics, not pwn (we did not manage to solve poortho's actual pwn...)
 We first get the download glad_bags, which running file on it says is an elf,  and running the program and ghidra analysis points at the program seemingly just being a kind of "hello world."
 However, a "hello world" program that prints a string should not take a whopping 13 MB...so something fishy is contained within the binary.
