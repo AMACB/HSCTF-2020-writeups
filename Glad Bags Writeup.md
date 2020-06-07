@@ -38,4 +38,4 @@ Diffing the FOI and the backup shows an interesting string: `MZWGCZ33MRXW45C7M5S
 ![](https://cdn.discordapp.com/attachments/717493157440258048/718665238634823720/unknown.png)
 
 Flag: `flag{dont_get_mad_get_glad_ez}`
-Also, if you take out the modified 7z.exe and rename the backup, hashing the x64 and aarch64 folders reveals that they are identical...not sure why both were in there.
+Also, if you take out the modified 7z.exe and rename the backup, hashing the x64 and aarch64 folders reveals that they are identical. aarch64 == x64
