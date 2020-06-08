@@ -9,7 +9,7 @@
 ### Outline
 1. Completely clearing a non-empty tree sets `root` equal to `temp_null`. Freeing `temp_null` as well creates a use-after-free vulnerability.
 2. The `free()` method places a pointer to tcache where the `description` pointer for a donation would go, letting us write directly into tcache with the use-after-free.
-3. We leaked the libc address by freeing a chunk onto the smallbin freelist and then using `malloc` first-fit to put the address of the leak in `amount` parameter of a donation.
+3. We leaked the libc address by freeing a chunk onto the smallbin freelist and then using `malloc` first-fit to put the address of the leak in the `amount` parameter of a donation.
 4. Writing directly into tcache allows us arbitrary write, which lets us write `system` to `__free_hook` to gain a shell.
 
 ### Vulnerability
@@ -52,14 +52,14 @@ void repair_dblack(Node* node) {
 			assert(p->right != NULL); // all pointers in temp_null are null now
 		...
 ```
-This can be bypassed by just allocating `temp_null` a right child and then freeing `temp_null` followed by the right child to clear the tree again.
+This can be bypassed by just allocating `temp_null` a right child and then freeing `temp_null` followed by freeing the right child to clear the tree again.
 
 This presents a second more serious "use-after-free" vulnerability. In particular, we just managed to free `temp_null`, but `root` is set to `temp_null` in an empty tree, so we have access to it, potentially even the ability to read and write. With some more pushing, this vulnerability turns out to be enough.
 
 ### Leaking Libc
 This is done in the same way as [Treecache 2](/Treecache_2/Treecache2.md). Once again, because we want a libc pointer, we go ahead and fill tcache with seven chunks of some size and then free another onto the smallbin freelist, which will place libc pointers inside the chunk. Then we use `malloc` first-fit to eventually receive back this eigth chunk and read the stored libc pointer.
 
-In particular, we have to use the reading from the `print_donation` function here.
+In particular, we have to leak from the `print_donation` function here.
 ```c
 	printf("%lu trees\n", a->amount);
 	printf("Donator: %s\n", a->name);
@@ -79,17 +79,17 @@ What is interesting here is that tcache will write a pointer to itself (at the t
 ```
 0x0000000000000000      0x0000000000000041 <-- size header
 0x[donated amount]      0x[ desc. pointer] <-- description!
-0x[  name pointer]      0x[a tree pointer]
+0x[ name pointer ]      0x[a tree pointer]
 0x[a tree pointer]      0x[a tree pointer]
-0x[    id]00000000      ...
+0x[  id  ][ color]      ...
 ```
 Now we bring in the fact that we have a use-after-free vulnerability. Notice that at our current state after setting `root` to `temp_null`, freeing `temp_null`, and then setting `root` back to `temp_null`, we have convinced the program that the freed `temp_null` chunk is currently on the tree.
 
-However, comparing the structure of a freed chunk to the donation chunk, upon freeing tcache wrote in `0x[next on tcache]` into `0x[donated amount]` (helper for leaks but otherwise irrelevant) and `0x[tcache pointer]` into `0x[ desc. pointer]`. So right now, `temp_null->description` points directly inside of tcache. As a brief review, the tcache chunk looks like the following in libc 2.29.
+However, comparing the structure of a freed chunk to the donation chunk, we notice that tcache wrote `0x[next on tcache]` into `0x[donated amount]` (helper for leaks but otherwise irrelevant) and `0x[tcache pointer]` into `0x[ desc. pointer]`. So right now, `temp_null->description` points to the top of the tcache chunk. As a brief review, the tcache chunk looks like the following in libc 2.29.
 ```
 0x0000000000000000      0x0000000000000251 <-- tcache has size 0x250
 0x0101010101010101      0x0101010101010101 <-- length of each freelist
-0x0100010101010101      0x0101010101010101     here all freelists are 1 long
+0x0101010101010101      0x0101010101010101     here all freelists are 1 long
 0x0101010102010101      0x0101010101010101
 0x0101010101010101      0x0101010101010101
 0x[top 0x20 chunk]      0x[top 0x30 chunk]
@@ -110,15 +110,16 @@ With our newfound awesome power of writing directly into tcache, we can fool `ma
 ```
 0x0000000000000000      0x0000000000000251 <-- tcache has size 0x250
 0x0101010101010101      0x0101010101010101 <-- length of each freelist
-0x0100010101010101      0x0101010101010101     here all freelists are 1 long
+0x0101010101010101      0x0101010101010101     here all freelists are 1 long
 0x0101010102010101      0x0101010101010101
 0x0101010101010101      0x0101010101010101
 0x00007f00deadbeef      0x00007f00deadbeef <-- top of freelists is 0x7f00deadbeef
 0x00007f00deadbeef      0x00007f00deadbeef
 ...
 ```
+This gives us the most arbitrary of writes.
 
 ### Finishing Up
-From here the exploit finishes normally. Write `/bin/sh` into some freeable memory, and then use the above most arbitrary of writes (courtesy of tcache destruction) to write `system` into `__free_hook`; recall we've leaked libc. Then calling `free` on the `/bin/sh` memory will call `free("/bin/sh")`, which is now `system`, so we have a shell and so have the flag.
+From here the exploit finishes normally. Write `/bin/sh` into some freeable memory, and then use the above arbitrary write (courtesy of tcache destruction) to write `system` into `__free_hook`; recall we've leaked libc. Then calling `free` on the `/bin/sh` memory will call `free("/bin/sh")`, which is now `system`, so we have a shell and so have the flag.
 
 The full exploit can be found [here](/Treecache_Alyx/treeforce.py).
