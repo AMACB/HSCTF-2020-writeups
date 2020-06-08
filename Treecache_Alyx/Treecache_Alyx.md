@@ -121,4 +121,4 @@ With our newfound awesome power of writing directly into tcache, we can fool `ma
 ### Finishing Up
 From here the exploit finishes normally. Write `/bin/sh` into some freeable memory, and then use the above most arbitrary of writes (courtesy of tcache destruction) to write `system` into `__free_hook`; recall we've leaked libc. Then calling `free` on the `/bin/sh` memory will call `free("/bin/sh")`, which is now `system`, so we have a shell and so have the flag.
 
-The full exploit can be found [here](Treecache_Alyx/treeforce.py).
+The full exploit can be found [here](/Treecache_Alyx/treeforce.py).
