@@ -27,7 +27,7 @@ Open at your own risk! This picture was taken just before Notepad++ crashed. Sam
 3. 7-zip: actually, this is the 7-zip Extra version, and unlike the past ones, it is not source.
 
 7-zip is the final destination in nested archives, tested through binwalking through the larger files. The file of interest is aarch64/7za.exe due to several red flags:
-1. x64 and aarch64 usually mean the same thing, and shouldn't be present together.
+1. x64 and aarch64 are usually in separate downloads, and shouldn't be present together.
 2. Looking into them, aarch64 has a 7za.exe and a 7za.exe.bak. Highly unusual for released software to keep backup files of binaries like that. And 7za.exe is just 10 bytes larger.
 3. Probably the biggest giveaway, all the other files in those two folders were last modified in 2019, while this one was May 28, a few days before the ctf, and it sticks out like a sore thumb in 7zip.
 
@@ -38,4 +38,4 @@ Diffing the FOI and the backup shows an interesting string: `MZWGCZ33MRXW45C7M5S
 ![](https://cdn.discordapp.com/attachments/717493157440258048/718665238634823720/unknown.png)
 
 Flag: `flag{dont_get_mad_get_glad_ez}`
-Also, if you take out the modified 7z.exe and rename the backup, hashing the x64 and aarch64 folders reveals that they are identical. aarch64 == x64
+Also, if you take out the modified 7z.exe and rename the backup, hashing the x64 and aarch64 folders reveals that they are identical. Which shouldn't happen.
